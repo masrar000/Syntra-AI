@@ -15,6 +15,12 @@ if os.environ.get("GOOGLE_CREDENTIALS_JSON"):
 if os.environ.get("GOOGLE_TOKEN_JSON"):
     Path("token.json").write_text(os.environ["GOOGLE_TOKEN_JSON"])
 
+st.sidebar.write({
+    "hubspot_token_seen": bool(os.getenv("HUBSPOT_PRIVATE_APP_TOKEN")),
+    "send_via_api": os.getenv("HUBSPOT_SEND_ENABLED"),
+})
+
+
 
 import os, json, time, datetime
 import streamlit as st
