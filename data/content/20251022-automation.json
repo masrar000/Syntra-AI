@@ -1,0 +1,34 @@
+{
+  "topic": "Automation that actually ships: small stacks, big ROI",
+  "slug": "automation-that-actually-ships-small-stacks-big-roi",
+  "created_ts": 1761131112,
+  "blog": "This placeholder will be overwritten when you generate a fresh blog in the app.",
+  "newsletters": {
+    "founder": {
+      "subject_main": "ROI with lean automation",
+      "subject_alt1": "Cut cost, not corners",
+      "subject_alt2": "Ship faster, spend less",
+      "preview_text": "3 plays that move the needle",
+      "body": "..."
+    },
+    "creative": {
+      "subject_main": "Make space to make",
+      "subject_alt1": "Less grunt work, more craft",
+      "subject_alt2": "Automate boring, create more",
+      "preview_text": "Ideas that save time",
+      "body": "..."
+    },
+    "ops": {
+      "subject_main": "Stable workflow wins",
+      "subject_alt1": "Integrations that just work",
+      "subject_alt2": "Reliability beats hacks",
+      "preview_text": "Keep systems flowing",
+      "body": "..."
+    }
+  },
+  "variants": {
+    "titles": [
+      "Automation wins: 3 small-stack plays"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+# secrets
+.env
+.env.*
+!.env.template
+!.env.example
+
+credentials.json
+token.json
+token_*.json
+
+# env + noise
+.venv/
+venv/
+__pycache__/
+.vscode/
+*.pyc

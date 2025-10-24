@@ -1,0 +1,37 @@
+{
+  "uid": "app-SyntraMarketingPipeline",
+  "type": "app",
+  "config": {
+    "description": "An example to demonstrate how to build a static private app with developer projects.",
+    "name": "Syntra Marketing Pipeline-Application",
+    "distribution": "private",
+    "auth": {
+      "type": "static",
+      "requiredScopes": [
+        "oauth",
+        "crm.objects.contacts.read",
+        "crm.objects.contacts.write",
+        "crm.schemas.contacts.write",
+        "crm.lists.read",
+        "crm.lists.write",
+        "content",
+        "marketing-email"
+      ],
+      "optionalScopes": [],
+      "conditionallyRequiredScopes": []
+    },
+    "permittedUrls": {
+      "fetch": [
+        "https://api.hubapi.com"
+      ],
+      "iframe": [],
+      "img": []
+    },
+    "support": {
+      "supportEmail": "sarimasrar1947@gmail.com",
+      "documentationUrl": "https://example.com/docs",
+      "supportUrl": "https://example.com/support",
+      "supportPhone": "+18583052394"
+    }
+  }
+}

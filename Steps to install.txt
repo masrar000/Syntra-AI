@@ -1,0 +1,9 @@
+1. PS C:\Users\msari> #already there
+cd "C:\Users\msari\Downloads\ai_marketing_pipeline" 
+2. PS C:\Users\msari\Downloads\ai_marketing_pipeline> #already there
+py -m venv .venv (just the first time to create virtual environment)
+3. PS C:\Users\msari\Downloads\ai_marketing_pipeline> 
+.\.venv\Scripts\Activate.ps1 (activate virtual environment)
+4. pip install -U pip (to run first time installations)
+5. pip install -r requirements.txt (to run first time installations)
+6. streamlit run app.py
