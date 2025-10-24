@@ -1,24 +1,27 @@
-# top of app.py, after imports
+# app.py — put this at the very top
 import os
 from pathlib import Path
+import streamlit as st
 
-# If running on Streamlit Cloud, st.secrets exists; on local it won’t matter
-try:
-    import streamlit as st
-    os.environ.update({k: str(v) for k, v in st.secrets.items()})
-except Exception:
-    pass
+# this must be the first Streamlit command
+st.set_page_config(page_title="AI Marketing Pipeline", page_icon="🧠", layout="wide")
 
-# Recreate files on the server if provided via secrets
+# now safe to use any st.* calls
+# expose secrets as env vars for cloud
+for k, v in st.secrets.items():
+    if isinstance(v, (dict, list)):
+        continue
+    os.environ.setdefault(k, str(v))
+
+# recreate files expected by your Google code
 if os.environ.get("GOOGLE_CREDENTIALS_JSON"):
     Path("credentials.json").write_text(os.environ["GOOGLE_CREDENTIALS_JSON"])
 if os.environ.get("GOOGLE_TOKEN_JSON"):
     Path("token.json").write_text(os.environ["GOOGLE_TOKEN_JSON"])
 
-st.sidebar.write({
-    "hubspot_token_seen": bool(os.getenv("HUBSPOT_PRIVATE_APP_TOKEN")),
-    "send_via_api": os.getenv("HUBSPOT_SEND_ENABLED"),
-})
+# now import any local modules that might use streamlit
+import google_docs_client as gdocs
+# from hubspot_client import ...   # whatever you import that may call st.*
 
 
 
@@ -33,7 +36,7 @@ import simulate_metrics as sim
 import llm_summary as lsum
 
 #setting up app
-st.set_page_config(page_title="AI Marketing Pipeline", page_icon="🧠", layout="wide")
+#st.set_page_config(page_title="AI Marketing Pipeline", page_icon="🧠", layout="wide")
 load_dotenv()
 hs.init_crm()
 
