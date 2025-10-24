@@ -1,3 +1,21 @@
+# top of app.py, after imports
+import os
+from pathlib import Path
+
+# If running on Streamlit Cloud, st.secrets exists; on local it won’t matter
+try:
+    import streamlit as st
+    os.environ.update({k: str(v) for k, v in st.secrets.items()})
+except Exception:
+    pass
+
+# Recreate files on the server if provided via secrets
+if os.environ.get("GOOGLE_CREDENTIALS_JSON"):
+    Path("credentials.json").write_text(os.environ["GOOGLE_CREDENTIALS_JSON"])
+if os.environ.get("GOOGLE_TOKEN_JSON"):
+    Path("token.json").write_text(os.environ["GOOGLE_TOKEN_JSON"])
+
+
 import os, json, time, datetime
 import streamlit as st
 from dotenv import load_dotenv
