@@ -1,6 +1,9 @@
 # hubspot_client.py
 # Minimal HubSpot helper for contacts, persona-based lists, and optional single-send.
 
+# top of file
+
+
 from __future__ import annotations
 
 import os
@@ -12,7 +15,8 @@ from typing import Dict, Any, List, Optional
 import requests
 
 # ===== Config =====
-BASE = "https://api.hubapi.com"
+#BASE = "https://api.hubapi.com"
+BASE = os.getenv("HUBSPOT_API_BASE", "https://api.hubapi.com").rstrip("/")
 HUB_TOKEN = os.getenv("HUBSPOT_PRIVATE_APP_TOKEN", "").strip()
 SEND_ENABLED = os.getenv("HUBSPOT_SEND_ENABLED", "false").lower() == "true"
 PERSONA_PROP = "audience_persona"
@@ -33,7 +37,7 @@ def _headers() -> Dict[str, str]:
     return {"Authorization": f"Bearer {HUB_TOKEN}", "Content-Type": "application/json"}
 
 
-def _req(method: str,path: str,*,params: Optional[Dict[str, Any]] = None,body: Optional[Dict[str, Any]] = None,timeout: int = 30,) -> Dict[str, Any]:
+def _req(method: str,path: str,*,params: Optional[Dict[str, Any]] = None,body: Optional[Dict[str, Any]] = None,timeout: int = 30) -> Dict[str, Any]:
     base = os.getenv("HUBSPOT_API_BASE", "https://api.hubapi.com")
     url = f"{BASE}{path}"
     # TEMP DEBUG
@@ -151,12 +155,6 @@ def create_contact_note(email: str, text: str) -> Dict[str, Any]:
 
 
 
-def init_crm() -> None:
-    """Best effort init, ensures the custom persona property exists."""
-    try:
-        ensure_persona_property()
-    except Exception:
-        pass
 
 def _map_persona_key_to_value(x: str) -> str:
     return _PERSONA_KEY_TO_VALUE.get(x, x)
