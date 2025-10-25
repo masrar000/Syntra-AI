@@ -15,8 +15,8 @@ from typing import Dict, Any, List, Optional
 import requests
 
 # ===== Config =====
-#BASE = "https://api.hubapi.com"
-BASE = os.getenv("HUBSPOT_API_BASE", "https://api.hubapi.com").rstrip("/")
+#BASE = "https://api.hubapi.com" #when running locally
+BASE = os.getenv("HUBSPOT_API_BASE", "https://api.hubapi.com").rstrip("/") #default base URL
 HUB_TOKEN = os.getenv("HUBSPOT_PRIVATE_APP_TOKEN", "").strip()
 SEND_ENABLED = os.getenv("HUBSPOT_SEND_ENABLED", "false").lower() == "true"
 PERSONA_PROP = "audience_persona"

@@ -1,4 +1,4 @@
-# app.py — put this at the very top
+# when running in Streamlit Cloud, else when running locally, comment out this entire block
 import os
 from pathlib import Path
 import streamlit as st
@@ -25,6 +25,7 @@ import google_docs_client as gdocs
 
 
 
+#when running locally, comment out the above block and start here
 import os, json, time, datetime
 import streamlit as st
 from dotenv import load_dotenv
@@ -82,8 +83,178 @@ with tab1:
 
 
 #Tab 2: Distribute
+# with tab2:
+#     st.subheader("Distribute via HubSpot (or simulate)")
+
+#     # Get files and normalize for Windows/Linux
+#     raw_files = store.list_content_files()
+#     def norm(p: str) -> str:
+#         return p.replace("\\", "/")
+
+#     # Keep only real content JSON files (exclude our index helper, if any)
+#     files = [p for p in raw_files
+#              if norm(p).endswith(".json")
+#              and "google_docs_index" not in norm(p)
+#              and "/content/" in norm(p)]
+
+#     if not files:
+#         st.info("No content yet. Generate in tab 1.")
+#     else:
+#         choice = st.selectbox("Pick content file", files, index=len(files) - 1, key="content_choice")
+#         data = store.read_json(choice)
+
+#         # --- One-time: auto-create a Google Doc if missing and save back to the same file ---
+#         if not data.get("doc_url"):
+#             try:
+#                 url = gdocs.create_blog_doc(
+#                     title=data.get("topic", "Untitled"),
+#                     body=data.get("blog", "")
+#                 )
+#                 data["doc_url"] = url
+#                 with open(choice, "w", encoding="utf-8") as f:
+#                     json.dump(data, f, ensure_ascii=False, indent=2)
+#                 st.success("✅ Created Google Doc and saved its URL in the content file.")
+#             except Exception as e:
+#                 st.warning(f"⚠️ Couldn’t create Doc automatically: {e}")
+
+#         # --- Show blog meta & preview ---
+#         st.write(f"**Blog:** {data.get('topic','')}  |  slug: `{data.get('slug','')}`")
+#         if data.get("doc_url"):
+#             st.markdown(f"**Doc URL:** {data['doc_url']}  \n[Open the doc]({data['doc_url']})")
+#         else:
+#             st.info("This content file has no `doc_url`. The CTA will fall back to BLOG_BASE_URL (if set).")
+
+#         st.text_area("Blog body", data.get("blog", ""), height=180, key="blog_readonly")
+
+#         # Persona setup and validation
+#         persona_map = {"Founders": "founder", "Creatives": "creative", "Operations": "ops"}
+#         missing = [k for k in ["founder", "creative", "ops"] if k not in (data.get("newsletters") or {})]
+#         if missing:
+#             st.error(f"Content file missing persona newsletters for: {', '.join(missing)}")
+
+#         st.markdown("**Audience and sending**")
+#         cols = st.columns(3)
+
+#         send_date = st.date_input("Send date", value=datetime.date.today(), key="send_date")
+#         to_placeholder = st.text_input(
+#             "Optional test recipients (comma-separated emails). Leave blank to target persona lists",
+#             key="test_recipients"
+#         )
+
+#         # Helper to build props (prefers Google Doc URL; otherwise BLOG_BASE_URL + slug)
+#         def build_props(keyp: str) -> dict:
+#             nl = (data.get("newsletters") or {}).get(keyp, {})
+#             slug = data.get("slug", "")
+#             doc_url = data.get("doc_url") or ""
+#             base = os.getenv("BLOG_BASE_URL", "").rstrip("/")
+
+#             # CTA priority: explicit NL CTA → doc_url → BLOG_BASE_URL/slug → BLOG_BASE_URL → docs home
+#             fallback = f"{base}/{slug}" if base and slug else base
+#             cta_url = nl.get("cta_url") or doc_url or fallback or "https://docs.google.com"
+
+#             return {
+#                 "persona": keyp,
+#                 "blog_slug": slug,
+#                 "blog_title": data.get("topic", ""),
+#                 "blog_excerpt": nl.get("excerpt") or data.get("blog", "")[:200],
+#                 "nl_subject": nl.get("subject") or f"{data.get('topic','')} — for {keyp}",
+#                 "nl_preheader": nl.get("preheader") or "This week’s top automation insight",
+#                 "nl_headline": nl.get("headline") or data.get("topic", ""),
+#                 "nl_body": nl.get("body") or "Quick take: focus on fewer, more useful automations.",
+#                 "cta_text": nl.get("cta_text") or "Read the full post",
+#                 "cta_url": cta_url,
+#             }
+
+#         # Per-persona send buttons
+#         for label, keyp in persona_map.items():
+#             with cols[["Founders", "Creatives", "Operations"].index(label)]:
+#                 st.write(f"**{label}**")
+#                 st.json((data.get("newsletters") or {}).get(keyp, {}))
+
+#                 if st.button(f"Send {label}", key=f"send_{keyp}"):
+#                     # Ensure dynamic list (ok if simulated)
+#                     seg = hs.ensure_persona_list(keyp)
+#                     if seg.get("status") == "error":
+#                         st.error(f"List error: {seg}")
+
+#                     # Resolve recipients
+#                     addresses = [e.strip() for e in to_placeholder.split(",") if e.strip()] or [f"{keyp}@example.com"]
+
+#                     # Make sure contacts exist & are tagged by persona
+#                     for addr in addresses:
+#                         hs.upsert_contact(addr, {"persona": keyp})
+
+#                     # Send with full custom properties (for HubL tokens)
+#                     props = build_props(keyp)
+#                     result = hs.single_send_marketing_email(
+#                         email_id=os.getenv("HUBSPOT_EMAIL_TEMPLATE_ID", "REPLACE_WITH_TEMPLATE_ID"),
+#                         to_addresses=addresses,
+#                         custom_props=props,
+#                     )
+
+#                     # Log locally
+#                     record = {
+#                         "ts": int(time.time()),
+#                         "send_date": str(send_date),
+#                         "audience": keyp,
+#                         "blog_title": data.get("topic", ""),
+#                         "newsletter_id": f"{data.get('slug','')}-{keyp}",
+#                         "hubspot_result": result,
+#                     }
+#                     store.append_send_log(record)
+#                     st.success(f"Sent (or simulated). Result: {result}")
+
+#         # Send ALL personas (same recipients typed above, per-persona props)
+#         if st.button("Send all personas", key="send_all_personas"):
+#             for _, keyp in persona_map.items():
+#                 addresses = [e.strip() for e in to_placeholder.split(",") if e.strip()] or [f"{keyp}@example.com"]
+#                 for addr in addresses:
+#                     hs.upsert_contact(addr, {"persona": keyp})
+
+#                 props = build_props(keyp)
+#                 result = hs.single_send_marketing_email(
+#                     email_id=os.getenv("HUBSPOT_EMAIL_TEMPLATE_ID", "REPLACE_WITH_TEMPLATE_ID"),
+#                     to_addresses=addresses,
+#                     custom_props=props,
+#                 )
+
+#                 record = {
+#                     "ts": int(time.time()),
+#                     "send_date": str(send_date),
+#                     "audience": keyp,
+#                     "blog_title": data.get("topic", ""),
+#                     "newsletter_id": f"{data.get('slug','')}-{keyp}",
+#                     "hubspot_result": result,
+#                 }
+#                 store.append_send_log(record)
+
+#             st.success("Sent (or simulated) to all personas.")
+
+#         # Save blog edits back to the SAME file
+#         if st.button("Save blog edits", key="save_blog_edits"):
+#             data["blog"] = st.session_state.get("blog_readonly", data.get("blog", ""))
+#             with open(choice, "w", encoding="utf-8") as f:
+#                 json.dump(data, f, ensure_ascii=False, indent=2)
+#             st.success(f"Saved changes back to {choice}.")
+
+#         if not data.get("newsletters"):
+#             st.error("This content file has no newsletters.")
+
+
+#just for testing purpose:
+# ---------- Tab 2: Distribute ----------
 with tab2:
     st.subheader("Distribute via HubSpot (or simulate)")
+
+    # Status hints so you know what's configured in Cloud
+    can_really_send = hs.can_send()
+    tmpl_id = os.getenv("HUBSPOT_EMAIL_TEMPLATE_ID", "").strip()
+    if not tmpl_id.isdigit():
+        st.warning("`HUBSPOT_EMAIL_TEMPLATE_ID` is not a numeric ID. Double-check Streamlit secrets.")
+    if not hs.hubspot_available():
+        st.info("No HubSpot Private App token set — all sends will be simulated.")
+    elif not can_really_send:
+        st.info("HUBSPOT_SEND_ENABLED is false — sends will be simulated. Turn it on when ready.")
 
     # Get files and normalize for Windows/Linux
     raw_files = store.list_content_files()
@@ -91,10 +262,12 @@ with tab2:
         return p.replace("\\", "/")
 
     # Keep only real content JSON files (exclude our index helper, if any)
-    files = [p for p in raw_files
-             if norm(p).endswith(".json")
-             and "google_docs_index" not in norm(p)
-             and "/content/" in norm(p)]
+    files = [
+        p for p in raw_files
+        if norm(p).endswith(".json")
+        and "google_docs_index" not in norm(p)
+        and "/content/" in norm(p)
+    ]
 
     if not files:
         st.info("No content yet. Generate in tab 1.")
@@ -155,7 +328,7 @@ with tab2:
                 "persona": keyp,
                 "blog_slug": slug,
                 "blog_title": data.get("topic", ""),
-                "blog_excerpt": nl.get("excerpt") or data.get("blog", "")[:200],
+                "blog_excerpt": nl.get("excerpt") or (data.get("blog", "")[:200] if data.get("blog") else ""),
                 "nl_subject": nl.get("subject") or f"{data.get('topic','')} — for {keyp}",
                 "nl_preheader": nl.get("preheader") or "This week’s top automation insight",
                 "nl_headline": nl.get("headline") or data.get("topic", ""),
@@ -163,6 +336,20 @@ with tab2:
                 "cta_text": nl.get("cta_text") or "Read the full post",
                 "cta_url": cta_url,
             }
+
+        # Small helper to actually send and catch/print HubSpot errors nicely
+        def do_send(keyp: str, addresses: list[str], props: dict):
+            try:
+                return hs.single_send_marketing_email(
+                    email_id=os.getenv("HUBSPOT_EMAIL_TEMPLATE_ID", "REPLACE_WITH_TEMPLATE_ID"),
+                    to_addresses=addresses,
+                    custom_props=props,
+                )
+            except Exception as e:
+                # Show the real API error in the UI to debug (remove once stable)
+                st.exception(e)
+                # Re-raise so we still stop logging this attempt as "success"
+                raise
 
         # Per-persona send buttons
         for label, keyp in persona_map.items():
@@ -185,11 +372,7 @@ with tab2:
 
                     # Send with full custom properties (for HubL tokens)
                     props = build_props(keyp)
-                    result = hs.single_send_marketing_email(
-                        email_id=os.getenv("HUBSPOT_EMAIL_TEMPLATE_ID", "REPLACE_WITH_TEMPLATE_ID"),
-                        to_addresses=addresses,
-                        custom_props=props,
-                    )
+                    result = do_send(keyp, addresses, props)
 
                     # Log locally
                     record = {
@@ -205,29 +388,28 @@ with tab2:
 
         # Send ALL personas (same recipients typed above, per-persona props)
         if st.button("Send all personas", key="send_all_personas"):
-            for _, keyp in persona_map.items():
-                addresses = [e.strip() for e in to_placeholder.split(",") if e.strip()] or [f"{keyp}@example.com"]
-                for addr in addresses:
-                    hs.upsert_contact(addr, {"persona": keyp})
+            try:
+                for _, keyp in persona_map.items():
+                    addresses = [e.strip() for e in to_placeholder.split(",") if e.strip()] or [f"{keyp}@example.com"]
+                    for addr in addresses:
+                        hs.upsert_contact(addr, {"persona": keyp})
 
-                props = build_props(keyp)
-                result = hs.single_send_marketing_email(
-                    email_id=os.getenv("HUBSPOT_EMAIL_TEMPLATE_ID", "REPLACE_WITH_TEMPLATE_ID"),
-                    to_addresses=addresses,
-                    custom_props=props,
-                )
+                    props = build_props(keyp)
+                    result = do_send(keyp, addresses, props)
 
-                record = {
-                    "ts": int(time.time()),
-                    "send_date": str(send_date),
-                    "audience": keyp,
-                    "blog_title": data.get("topic", ""),
-                    "newsletter_id": f"{data.get('slug','')}-{keyp}",
-                    "hubspot_result": result,
-                }
-                store.append_send_log(record)
+                    record = {
+                        "ts": int(time.time()),
+                        "send_date": str(send_date),
+                        "audience": keyp,
+                        "blog_title": data.get("topic", ""),
+                        "newsletter_id": f"{data.get('slug','')}-{keyp}",
+                        "hubspot_result": result,
+                    }
+                    store.append_send_log(record)
 
-            st.success("Sent (or simulated) to all personas.")
+                st.success("Sent (or simulated) to all personas.")
+            except Exception:
+                st.stop()  # error already shown by st.exception in do_send
 
         # Save blog edits back to the SAME file
         if st.button("Save blog edits", key="save_blog_edits"):
@@ -238,7 +420,6 @@ with tab2:
 
         if not data.get("newsletters"):
             st.error("This content file has no newsletters.")
-
 
 
 
