@@ -61,19 +61,54 @@ st.title("AI Marketing Pipeline- Blog -> Newsletters -> Send -> Performance")
 
 #this is for webhost
 #sidebars
+# sidebars
 with st.sidebar:
-    st.header("Settings")   
-    #the below part is the actual running code. Remove the above block when running local host
+    st.header("Settings")
+
+    # existing settings display
     st.markdown("**LLM Provider:** " + os.getenv("LLM_PROVIDER", "openai"))
     st.markdown("**HubSpot token set:** " + ("✅" if hs.hubspot_available() else "❌"))
     st.markdown("**Email send via API:** " + ("✅" if hs.can_send() else "❌ simulate"))
+    st.divider()
+
+    # 🔍 Diagnostic block — add this
+    st.subheader("HubSpot diagnostics")
+    if st.button("Run HubSpot auth check"):
+        import requests
+        tok = os.getenv("HUBSPOT_PRIVATE_APP_TOKEN", "")
+        eid = os.getenv("HUBSPOT_EMAIL_TEMPLATE_ID", "")
+        st.write("Token (masked):", (tok[:7] + "…" + tok[-6:]) if tok else "(missing)")
+
+        if not tok:
+            st.error("HUBSPOT_PRIVATE_APP_TOKEN missing from secrets.")
+        else:
+            try:
+                # private app token diagnostic (this one works)
+                u1 = "https://api.hubapi.com/account-info/v3/details"
+                r1 = requests.get(u1, headers={"Authorization": f"Bearer {tok}"}, timeout=20)
+                st.write("account-info status:", r1.status_code)
+                st.code((r1.text or "")[:600])
+
+                # check marketing email access
+                if str(eid).isdigit():
+                    u2 = f"https://api.hubapi.com/marketing/v3/emails/{eid}"
+                    r2 = requests.get(u2, headers={"Authorization": f"Bearer {tok}"}, timeout=20)
+                    st.write("get email status:", r2.status_code)
+                    st.code((r2.text or "")[:600])
+                else:
+                    st.warning("HUBSPOT_EMAIL_TEMPLATE_ID is not numeric.")
+            except Exception as e:
+                st.exception(e)
+
     st.divider()
     st.subheader("Helpful Docs")
     st.markdown("[Marketing Email API](https://developers.hubspot.com/docs/api-reference/marketing-marketing-emails-v3-v3/guide)")
     st.markdown("[Single-send API](https://developers.hubspot.com/docs/api-reference/marketing-single-send-v4/guide)")
     st.markdown("[Lists (Segments) API](https://developers.hubspot.com/docs/api-reference/crm-lists-v3/guide)")
 
+# then your main tabs right below
 tab1, tab2, tab3, tab4 = st.tabs(["1) Generate Content", "2) Distribute", "3) Performance", "4) Data Browser"])
+
 
 #Tab 1: Generate 
 with tab1:
