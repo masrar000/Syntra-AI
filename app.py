@@ -41,11 +41,45 @@ import llm_summary as lsum
 load_dotenv()
 hs.init_crm()
 
-st.title("AI Marketing Pipeline — Blog → Newsletters → Send → Performance")
+st.title("AI Marketing Pipeline- Blog -> Newsletters -> Send -> Performance")
 
 #sidebars
 with st.sidebar:
     st.header("Settings")
+    '''
+    just for testing purpose:
+    '''
+    import os, requests, streamlit as st
+
+with st.sidebar:
+    st.subheader("HubSpot diagnostics")
+    if st.button("Run HubSpot auth check"):
+        tok = os.getenv("HUBSPOT_PRIVATE_APP_TOKEN", "")
+        if not tok:
+            st.error("HUBSPOT_PRIVATE_APP_TOKEN missing from secrets.")
+        else:
+            st.write("Token (masked):", f"{tok[:7]}…{tok[-6:]}")
+            try:
+                # 1) What portal/scopes does this token belong to?
+                u = f"https://api.hubapi.com/oauth/v1/access-tokens/{tok}"
+                r = requests.get(u, timeout=30)
+                st.write("access-tokens status:", r.status_code)
+                st.code(r.text[:800])
+
+                # 2) Can we read your email asset with this token+portal?
+                eid = os.getenv("HUBSPOT_EMAIL_TEMPLATE_ID", "")
+                if str(eid).isdigit():
+                    u2 = f"https://api.hubapi.com/marketing/v3/emails/{eid}"
+                    r2 = requests.get(u2, headers={"Authorization": f"Bearer {tok}", "Accept": "application/json"}, timeout=30)
+                    st.write("get email status:", r2.status_code)
+                    st.code(r2.text[:800])
+                else:
+                    st.warning("HUBSPOT_EMAIL_TEMPLATE_ID is not numeric.")
+            except Exception as e:
+                st.exception(e)
+
+    
+    #the below part is the actual running code. Remove the above block when running local host
     st.markdown("**LLM Provider:** " + os.getenv("LLM_PROVIDER", "openai"))
     st.markdown("**HubSpot token set:** " + ("✅" if hs.hubspot_available() else "❌"))
     st.markdown("**Email send via API:** " + ("✅" if hs.can_send() else "❌ simulate"))
