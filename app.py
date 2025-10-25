@@ -51,32 +51,27 @@ with st.sidebar:
     '''
     import os, requests, streamlit as st
 
-with st.sidebar:
-    st.subheader("HubSpot diagnostics")
-    if st.button("Run HubSpot auth check"):
-        tok = os.getenv("HUBSPOT_PRIVATE_APP_TOKEN", "")
-        if not tok:
-            st.error("HUBSPOT_PRIVATE_APP_TOKEN missing from secrets.")
-        else:
-            st.write("Token (masked):", f"{tok[:7]}…{tok[-6:]}")
-            try:
-                # 1) What portal/scopes does this token belong to?
-                u = f"https://api.hubapi.com/oauth/v1/access-tokens/{tok}"
-                r = requests.get(u, timeout=30)
-                st.write("access-tokens status:", r.status_code)
-                st.code(r.text[:800])
+import os, requests, streamlit as st
+tok = os.getenv("HUBSPOT_PRIVATE_APP_TOKEN","")
+eid = os.getenv("HUBSPOT_EMAIL_TEMPLATE_ID","")
 
-                # 2) Can we read your email asset with this token+portal?
-                eid = os.getenv("HUBSPOT_EMAIL_TEMPLATE_ID", "")
-                if str(eid).isdigit():
-                    u2 = f"https://api.hubapi.com/marketing/v3/emails/{eid}"
-                    r2 = requests.get(u2, headers={"Authorization": f"Bearer {tok}", "Accept": "application/json"}, timeout=30)
-                    st.write("get email status:", r2.status_code)
-                    st.code(r2.text[:800])
-                else:
-                    st.warning("HUBSPOT_EMAIL_TEMPLATE_ID is not numeric.")
-            except Exception as e:
-                st.exception(e)
+st.write("Token (masked):", (tok[:7] + "…" + tok[-6:]) if tok else "(missing)")
+
+# 1) Works for Private App tokens: shows your portal (proves token+portal)
+u1 = "https://api.hubapi.com/account-info/v3/details"
+r1 = requests.get(u1, headers={"Authorization": f"Bearer {tok}"}, timeout=20)
+st.write("account-info status:", r1.status_code)
+st.code((r1.text or "")[:600])
+
+# 2) Can we read the email asset with THIS token? (proves scope+portal+email match)
+if str(eid).isdigit():
+    u2 = f"https://api.hubapi.com/marketing/v3/emails/{eid}"
+    r2 = requests.get(u2, headers={"Authorization": f"Bearer {tok}"}, timeout=20)
+    st.write("get email status:", r2.status_code)
+    st.code((r2.text or "")[:600])
+else:
+    st.warning("HUBSPOT_EMAIL_TEMPLATE_ID is not numeric.")
+
 
     
     #the below part is the actual running code. Remove the above block when running local host
