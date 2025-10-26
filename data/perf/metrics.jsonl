@@ -16,3 +16,6 @@
 {"ts": 1761345525, "audience": "founder", "open_rate": 0.2616, "click_rate": 0.0756, "unsub_rate": 0.0032}
 {"ts": 1761345526, "audience": "creative", "open_rate": 0.3366, "click_rate": 0.0851, "unsub_rate": 0.0032}
 {"ts": 1761345526, "audience": "ops", "open_rate": 0.3323, "click_rate": 0.0325, "unsub_rate": 0.0039}
+{"ts": 1761406713, "audience": "founder", "open_rate": 0.3, "click_rate": 0.0586, "unsub_rate": 0.0036}
+{"ts": 1761406714, "audience": "creative", "open_rate": 0.355, "click_rate": 0.0852, "unsub_rate": 0.0035}
+{"ts": 1761406716, "audience": "ops", "open_rate": 0.2685, "click_rate": 0.0544, "unsub_rate": 0.003}
