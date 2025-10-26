@@ -53,7 +53,7 @@ The app runs both **locally** and on **Streamlit Cloud** — no manual steps onc
 ## ⚙️ Architecture
 
 ### System Flow
-```mermaid
+
 flowchart LR
   A[User enters Topic] --> B[LLM Engine\n(OpenAI/Gemini)]
   B --> C[Blog (≈600w)]
@@ -70,8 +70,7 @@ flowchart LR
     J --> K[AI Summary\nllm_summary.py → summary.json]
     K --> L[Next-Topic Hints\n(optional)]
     L -. informs .-> B
-  end
-```
+
 
 ### Component Map
 ```mermaid
@@ -256,6 +255,12 @@ If your plan doesn’t allow API sends, the app automatically **simulates** them
 6. Summarize performance using LLM insights  
 
 ---
+
+## URL
+https://syntraai.streamlit.app/
+
+## Demo
+https://drive.google.com/file/d/1RgcFVtkKh6N3DcP9GRN8qOkH7jmEYyvf/view?usp=sharing
 
 ## 👤 Author
 **Sarim (masrar000)**  
