@@ -545,6 +545,35 @@ import re
 # ------------- Streamlit setup (must be first) -------------
 st.set_page_config(page_title="AI Marketing Pipeline", page_icon="🧠", layout="wide")
 
+import re
+
+def strip_code_fences(text: str) -> str:
+    """Remove ```json ... ``` or ``` ... ``` blocks & trim."""
+    if not text:
+        return ""
+    # remove fenced blocks
+    text = re.sub(r"```(?:json)?\s*([\s\S]*?)```", r"\1", text, flags=re.IGNORECASE)
+    # also remove any stray backticks
+    text = text.replace("```", "").strip()
+    return text
+
+def normalize_paragraphs(text: str) -> str:
+    """Collapse multiple blank lines to single paragraph spacing."""
+    lines = [ln.strip() for ln in (text or "").splitlines()]
+    chunks = []
+    buf = []
+    for ln in lines:
+        if ln:
+            buf.append(ln)
+        else:
+            if buf:
+                chunks.append(" ".join(buf))
+                buf = []
+    if buf:
+        chunks.append(" ".join(buf))
+    return "\n\n".join(chunks)
+
+
 def _clean_body(text: str) -> str:
     """Remove code fences and stray JSON from newsletter body for email."""
     if not text:
@@ -698,32 +727,41 @@ with tab2:
 
         # Helper to build properties for HubL tokens
         def build_props(keyp: str) -> dict:
-            nl = (data.get("newsletters") or {}).get(keyp, {})
+            nl = (data.get("newsletters") or {}).get(keyp, {})  # the parsed JSON for this persona
+
+            # --- keep JSON visible in Streamlit for debugging ---
+            import json as _json
+            st.caption("Raw JSON for this persona (debug only):")
+            st.code(_json.dumps(nl, indent=2), language="json")
+
+            # --- clean body for email send ---
+            body_raw = nl.get("body") or ""
+            body_clean = normalize_paragraphs(strip_code_fences(body_raw))
+
             slug = data.get("slug", "")
             doc_url = data.get("doc_url") or ""
             base = os.getenv("BLOG_BASE_URL", "").rstrip("/")
-
             fallback = f"{base}/{slug}" if base and slug else base
             cta_url = nl.get("cta_url") or doc_url or fallback or "https://docs.google.com"
 
-            # Take the raw body for display in Streamlit, but send a cleaned body to HubSpot
-            raw_body = nl.get("body") or "Quick take: focus on fewer, more useful automations."
-            clean_body = _clean_body(raw_body)
-
             return {
-                "persona": keyp,
-                "blog_slug": slug,
+                # subject & preheader for the email header
+                "nl_subject": nl.get("subject_main") or f"{data.get('topic','')} — for {keyp}",
+                "nl_preheader": nl.get("preview_text") or "This week’s top automation insight",
+
+                # content visible in the email:
+                "nl_headline": nl.get("headline") or data.get("topic", ""),
+                "nl_body": body_clean,                   # <<< CLEAN body (no JSON/backticks)
                 "blog_title": data.get("topic", ""),
                 "blog_excerpt": nl.get("excerpt") or data.get("blog", "")[:200],
-                "nl_subject": nl.get("subject") or f"{data.get('topic','')} — for {keyp}",
-                "nl_preheader": nl.get("preheader") or "This week’s top automation insight",
-                "nl_headline": nl.get("headline") or data.get("topic", ""),
-                # IMPORTANT: send the cleaned body to the email template
-                "nl_body": clean_body,
-                # keep a copy in case you want to show it in Streamlit or logs
-                "nl_body_raw": raw_body,
+
+                # CTA
                 "cta_text": nl.get("cta_text") or "Read the full post",
                 "cta_url": cta_url,
+
+                # optional tags
+                "persona": keyp,
+                "blog_slug": slug,
             }
 
 
