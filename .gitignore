@@ -23,7 +23,7 @@ token.json
 
 
 # never commit secrets
-secrets.txt
+secrets for webhost.txt
 .env
 credentials.json
 token.json
