@@ -7,10 +7,24 @@
 credentials.json
 token.json
 token_*.json
-
+get_hubspot_token.py
 # env + noise
 .venv/
 venv/
 __pycache__/
 .vscode/
 *.pyc
+secrets.txt
+# never commit secrets
+secrets.txt
+.env
+credentials.json
+token.json
+
+
+# never commit secrets
+secrets.txt
+.env
+credentials.json
+token.json
+

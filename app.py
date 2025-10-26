@@ -540,9 +540,29 @@ from pathlib import Path
 import json, time, datetime
 import streamlit as st
 from dotenv import load_dotenv
+import re
 
 # ------------- Streamlit setup (must be first) -------------
 st.set_page_config(page_title="AI Marketing Pipeline", page_icon="🧠", layout="wide")
+
+def _clean_body(text: str) -> str:
+    """Remove code fences and stray JSON from newsletter body for email."""
+    if not text:
+        return ""
+    # Remove any fenced code blocks (``` ... ```)
+    text = re.sub(r"```[\s\S]*?```", "", text).strip()
+    # If the remaining string is still a pure JSON blob, drop it
+    t = text.strip()
+    if (t.startswith("{") and t.endswith("}")) or (t.startswith("[") and t.endswith("]")):
+        try:
+            _ = json.loads(t)  # looks like just JSON
+            return ""          # don’t send JSON to email body
+        except Exception:
+            pass
+    return text
+
+
+
 
 # Expose Streamlit Secrets as env vars (for cloud)
 for k, v in st.secrets.items():
@@ -686,6 +706,10 @@ with tab2:
             fallback = f"{base}/{slug}" if base and slug else base
             cta_url = nl.get("cta_url") or doc_url or fallback or "https://docs.google.com"
 
+            # Take the raw body for display in Streamlit, but send a cleaned body to HubSpot
+            raw_body = nl.get("body") or "Quick take: focus on fewer, more useful automations."
+            clean_body = _clean_body(raw_body)
+
             return {
                 "persona": keyp,
                 "blog_slug": slug,
@@ -694,10 +718,14 @@ with tab2:
                 "nl_subject": nl.get("subject") or f"{data.get('topic','')} — for {keyp}",
                 "nl_preheader": nl.get("preheader") or "This week’s top automation insight",
                 "nl_headline": nl.get("headline") or data.get("topic", ""),
-                "nl_body": nl.get("body") or "Quick take: focus on fewer, more useful automations.",
+                # IMPORTANT: send the cleaned body to the email template
+                "nl_body": clean_body,
+                # keep a copy in case you want to show it in Streamlit or logs
+                "nl_body_raw": raw_body,
                 "cta_text": nl.get("cta_text") or "Read the full post",
                 "cta_url": cta_url,
             }
+
 
         # Helper to send with graceful error surfacing
         def do_send(keyp: str, addresses: list[str], props: dict):
