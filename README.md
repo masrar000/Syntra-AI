@@ -52,26 +52,6 @@ The app runs both **locally** and on **Streamlit Cloud** — no manual steps onc
 
 ## ⚙️ Architecture
 
-### System Flow
-
-flowchart LR
-  A[User enters Topic] --> B[LLM Engine\n(OpenAI/Gemini)]
-  B --> C[Blog (≈600w)]
-  B --> D[3 Newsletters\nFounder / Creative / Ops]
-  C --> E[Storage\n/data/content/*.json]
-  D --> E
-  E --> F[Google Docs\nPublish Post]
-  E --> G[HubSpot CRM\nContacts + Lists]
-  G --> H[Single-Send API\nPer Persona]
-  H --> I[Delivery / Inbox]
-
-  subgraph Performance Loop
-    I --> J[Metrics (sim/real)\n/data/perf/metrics.jsonl]
-    J --> K[AI Summary\nllm_summary.py → summary.json]
-    K --> L[Next-Topic Hints\n(optional)]
-    L -. informs .-> B
-
-
 ### Component Map
 ```mermaid
 flowchart TB
